@@ -2,14 +2,14 @@
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
-package frame
+package data
 
 import (
 	"testing"
 	"time"
 )
 
-var testRecords1 = []struct{
+var testRecords1 = []struct {
 	Name  string
 	Stamp time.Time
 	ValF  float64
@@ -17,14 +17,20 @@ var testRecords1 = []struct{
 }{
 	{
 		Name: "a",
-		Stamp: time.Unix(1411430400, 0),
+		//Stamp: time.Unix(1411430400, 0),
 		ValF: 3.14,
 		ValI: 42,
 	},
 }
 
 func TestNewDataFrame(t *testing.T) {
-	df, err := NewDataFrameFromRecords(testRecords1, "", -1)
+	df, err := NewDataFrameFromRecords("lulz", "", -1)
+	if err == nil {
+		t.Errorf("NewDataFrameFromRecords should fail for string rows")
+		return
+	}
+
+	df, err = NewDataFrameFromRecords(testRecords1, "", -1)
 	if err != nil {
 		t.Errorf("NewDataFrameFromRecords: %s", err)
 		return

@@ -2,7 +2,7 @@
 // Use of this source code is governed by the MIT
 // license that can be found in the LICENSE file.
 
-package frame
+package data
 
 import (
 	"fmt"
@@ -35,7 +35,7 @@ TSDataFrame
 
 */
 
-type LookupTypeError struct{
+type LookupTypeError struct {
 	Key interface{}
 }
 
@@ -43,7 +43,7 @@ func (e LookupTypeError) Error() string {
 	return fmt.Sprintf("Wrong lookup type for: %s (%T)", e.Key, e.Key)
 }
 
-type LookupError struct{
+type LookupError struct {
 	Key interface{}
 }
 
@@ -51,7 +51,7 @@ func (e LookupError) Error() string {
 	return fmt.Sprintf("Lookup failed for: %s", e.Key)
 }
 
-type Index interface{
+type Index interface {
 	Lookup(key interface{}) (int, error)
 	RLookup(i int) (interface{}, error)
 	Len() int
@@ -123,7 +123,7 @@ func (s *SeriesF) Set(key string, val float64) error {
 
 type DataFrame struct {
 	ColIndex *IndexS // index for column-names into Series member
-	RowIndex Index // shared index for all series
+	RowIndex Index   // shared index for all series
 	Series   []Series
 }
 
@@ -144,17 +144,42 @@ func NewDataFrameFromRecords(records interface{}, key string, cap int) (*DataFra
 	if rv.Kind() != reflect.Slice {
 		return nil, fmt.Errorf("records arg must be slice, not %s", rv.Kind())
 	}
-	if cap < rv.Len() {
-		cap = rv.Len()
+	nr := rv.Len()
+	if cap < nr {
+		cap = nr
 	}
+	cols := make(map[string]reflect.Type)
+	rows := make([]string, 0, nr)
+
 	// iterate through records to find union of field names for DF
 	// index + keys for shared Series index
+	for i := 0; i < nr; i++ {
+		v := rv.Index(i)
+		// FIXME(bp) handle nil
+		if v.Kind() == reflect.Ptr {
+			v = v.Elem()
+		}
+		switch v.Kind() {
+		case reflect.Map:
+			if v.Type().Key().Kind() != reflect.String {
+				return nil, fmt.Errorf("map key type must be str, not %s", v.Type().Key().Kind())
+			}
+			// XXX: iterate over keys
+			fields := cachedTypeFields(v.Type())
+			_ = fields
+		case reflect.Struct:
+			// XXX:
+		default:
+			return nil, fmt.Errorf("unsupported record type %s", v.Kind())
+		}
+	}
 
 	// create series with 0 len + specified cap
 
 	// iterate through records, filling in series with value from
 	// record or math.NaN
 
+	_, _ = rows, cols
+
 	return nil, nil
 }
-
