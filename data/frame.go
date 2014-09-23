@@ -148,13 +148,12 @@ func NewDataFrameFromRecords(records interface{}, key string, cap int) (*DataFra
 	if cap < nr {
 		cap = nr
 	}
-	cols := make(map[string]reflect.Type)
-	rows := make([]string, 0, nr)
+	cols := make(map[string]reflect.Kind)
+	rows := make([]string, nr)
 
 	// iterate through records to find union of field names for DF
 	// index + keys for shared Series index
 	for i := 0; i < nr; i++ {
-		fmt.Printf("iter %d\n", i)
 		v := rv.Index(i)
 		// FIXME(bp) handle nil
 		if v.Kind() == reflect.Ptr {
@@ -167,13 +166,25 @@ func NewDataFrameFromRecords(records interface{}, key string, cap int) (*DataFra
 			}
 			// XXX: iterate over keys
 		case reflect.Struct:
-			// XXX:
-			var f *field
 			fields := cachedTypeFields(v.Type())
-			for i := range fields {
-				ff := &fields[i]
-				f = ff
-				fmt.Printf("field name: %s\n", f.name)
+			for j := range fields {
+				n := fields[j].name
+				fv := v.FieldByName(fields[j].name)
+				switch fv.Kind() {
+				case reflect.String:
+					if n == key {
+						s := fv.String()
+						if s != "" {
+							rows[i] = s
+						}
+					}
+					fallthrough
+				case reflect.Int64, reflect.Float64:
+					cols[n] = fv.Kind()
+				default:
+					// XXX: log?
+					continue
+				}
 			}
 		default:
 			return nil, fmt.Errorf("unsupported record type %s", v.Kind())
@@ -186,6 +197,8 @@ func NewDataFrameFromRecords(records interface{}, key string, cap int) (*DataFra
 	// record or math.NaN
 
 	_, _ = rows, cols
+	fmt.Printf("rows: %#v\n", rows)
+	fmt.Printf("cols: %#v\n", cols)
 
 	return nil, nil
 }

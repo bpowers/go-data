@@ -10,16 +10,22 @@ import (
 )
 
 var testRecords1 = []struct {
-	Name  string `json:"name"`
+	Name string `json:"name"`
 	Stamp time.Time
-	ValF  float64
-	ValI  int64
+	ValF float64
+	ValI int64
 }{
 	{
 		Name: "a",
-		//Stamp: time.Unix(1411430400, 0),
+		Stamp: time.Unix(1411430400, 0),
 		ValF: 3.14,
 		ValI: 42,
+	},
+	{
+		Name: "b",
+		Stamp: time.Unix(1411430400, 0),
+		ValF: 2.0,
+		ValI: 10,
 	},
 }
 
@@ -30,7 +36,7 @@ func TestNewDataFrame(t *testing.T) {
 		return
 	}
 
-	df, err = NewDataFrameFromRecords(testRecords1, "", -1)
+	df, err = NewDataFrameFromRecords(testRecords1, "Name", -1)
 	if err != nil {
 		t.Errorf("NewDataFrameFromRecords: %s", err)
 		return
