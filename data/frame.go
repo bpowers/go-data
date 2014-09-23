@@ -154,6 +154,7 @@ func NewDataFrameFromRecords(records interface{}, key string, cap int) (*DataFra
 	// iterate through records to find union of field names for DF
 	// index + keys for shared Series index
 	for i := 0; i < nr; i++ {
+		fmt.Printf("iter %d\n", i)
 		v := rv.Index(i)
 		// FIXME(bp) handle nil
 		if v.Kind() == reflect.Ptr {
@@ -165,10 +166,15 @@ func NewDataFrameFromRecords(records interface{}, key string, cap int) (*DataFra
 				return nil, fmt.Errorf("map key type must be str, not %s", v.Type().Key().Kind())
 			}
 			// XXX: iterate over keys
-			fields := cachedTypeFields(v.Type())
-			_ = fields
 		case reflect.Struct:
 			// XXX:
+			var f *field
+			fields := cachedTypeFields(v.Type())
+			for i := range fields {
+				ff := &fields[i]
+				f = ff
+				fmt.Printf("field name: %s\n", f.name)
+			}
 		default:
 			return nil, fmt.Errorf("unsupported record type %s", v.Kind())
 		}

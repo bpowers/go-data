@@ -10,7 +10,7 @@ import (
 )
 
 var testRecords1 = []struct {
-	Name  string
+	Name  string `json:"name"`
 	Stamp time.Time
 	ValF  float64
 	ValI  int64

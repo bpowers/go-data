@@ -136,6 +136,7 @@ func typeFields(t reflect.Type) []field {
 				if !isValidTag(name) {
 					name = ""
 				}
+				name = "" // disable use of JSON tag name
 				index := make([]int, len(f.index)+1)
 				copy(index, f.index)
 				index[len(f.index)] = i
